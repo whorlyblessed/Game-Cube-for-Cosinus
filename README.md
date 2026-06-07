@@ -128,150 +128,136 @@ Projekt prezentuje umiejętności pracy z:
 * logiką gier,
 * obsługą fizyki i animacji.
 
-# 👨‍💻 Proces tworzenia projektu Cube Dash
+Russia: 
 
-## 📌 Informacje ogólne
+# 🎮 Cube Dash
 
-Projekt **Cube Dash** został stworzony przez studentów:
+## 📌 О проекте
 
-* **Valentyn Borysenko**
-* **Dmytro Kivshar**
+**Cube Dash** — это 2D аркадная игра, созданная с использованием **HTML5, CSS3 и JavaScript** без сторонних игровых движков.
+Игрок управляет кубом, который автоматически движется вперед и должен преодолевать препятствия, проходя уровни различной сложности.
 
-Prace nad projektem były wykonywane wspólnie z podziałem obowiązków pomiędzy członków zespołu. Głównym celem projektu było stworzenie w pełni funkcjonalnej przeglądarkowej gry 2D przy użyciu HTML5 Canvas oraz JavaScript bez wykorzystania gotowych silników gier.
+Проект полностью реализован в одном HTML-файле и включает:
 
----
-
-# 🧠 Etap planowania projektu
-
-Na początku zespół wspólnie omawiał:
-
-* koncepcję gry,
-* gatunek projektu,
-* styl graficzny,
-* podstawowe mechaniki rozgrywki,
-* strukturę poziomów,
-* wygląd interfejsu użytkownika.
-
-Po dyskusji zdecydowano się stworzyć dynamiczną grę zręcznościową inspirowaną Geometry Dash z własnym stylem oraz systemem poziomów.
+* HTML-разметку,
+* CSS-стилизацию,
+* JavaScript-логику игры.
 
 ---
 
-# ⚙️ Podział obowiązków
+# 🚀 Основные возможности
 
-## 👨‍💻 Valentyn Borysenko
+## 🎯 Игровой процесс
 
-Główne zadania:
-
-* tworzenie logiki gry;
-* implementacja ruchu postaci;
-* realizacja fizyki skoku i grawitacji;
-* programowanie kolizji z przeszkodami;
-* stworzenie głównej pętli gry (`requestAnimationFrame`);
-* implementacja systemu checkpointów;
-* optymalizacja wydajności gry.
-
-Dodatkowo Valentyn zajmował się:
-
-* konfiguracją animacji,
-* testowaniem mechanik,
-* poprawianiem błędów w działaniu gry.
+* Автоматическое движение персонажа
+* Прыжки по нажатию клавиш или касанием экрана
+* Система столкновений
+* Подсчет прогресса уровня
+* Счетчик смертей
+* Экран победы после прохождения уровня
 
 ---
 
-## 👨‍💻 Dmytro Kivshar
+# 🗺️ Уровни
 
-Główne zadania:
+В игре реализовано **3 уникальных уровня**:
 
-* projektowanie interfejsu gry;
-* tworzenie menu oraz ekranów gry;
-* stylizacja projektu przy użyciu CSS;
-* implementacja systemu personalizacji postaci;
-* konfiguracja wyświetlania postępu i statystyk;
-* projektowanie poziomów i przeszkód.
+1. **The Basics**
+2. **Split Paths**
+3. **Gravity Core**
 
-Dodatkowo Dmytro zajmował się:
+Каждый уровень содержит:
 
-* opracowaniem części wizualnej projektu,
-* doborem kolorystyki,
-* tworzeniem interfejsu użytkownika (HUD),
-* testowaniem wyglądu gry na różnych rozdzielczościach ekranu.
+* платформы,
+* блоки,
+* шипы,
+* препятствия различной сложности.
 
 ---
 
-# 🛠️ Proces tworzenia projektu
+# ⚙️ Дополнительные функции
 
-Tworzenie projektu przebiegało w kilku etapach:
+## ✅ Система чекпоинтов
 
-## 1️⃣ Utworzenie podstawowej struktury
+Игрок может включать или выключать систему контрольных точек.
 
-Na początku została przygotowana struktura HTML projektu oraz podłączono Canvas API odpowiedzialne za renderowanie grafiki.
+При включении:
 
----
-
-## 2️⃣ Implementacja mechaniki gry
-
-Następnie zaimplementowano:
-
-* system ruchu,
-* skakanie,
-* fizykę postaci,
-* kolizje z obiektami.
+* после смерти персонаж возрождается ближе к месту гибели.
 
 ---
 
-## 3️⃣ Tworzenie poziomów
+## 🎨 Кастомизация персонажа
 
-Kolejnym etapem było stworzenie kilku poziomów z różnorodnymi przeszkodami i stopniowo rosnącym poziomem trudności.
+В игре реализовано отдельное меню настройки куба:
 
----
-
-## 4️⃣ Projektowanie interfejsu
-
-Zostały stworzone:
-
-* menu główne,
-* ekran zwycięstwa,
-* interfejs wyświetlający postęp gry,
-* menu personalizacji postaci.
+* выбор одного из 3 скинов,
+* изменение цвета персонажа,
+* предварительный просмотр изменений.
 
 ---
 
-## 5️⃣ Dodawanie dodatkowych funkcji
+# 🛠️ Используемые технологии
 
-Na końcowym etapie zaimplementowano:
-
-* system checkpointów,
-* wybór skinów,
-* zmianę koloru postaci,
-* animacje obracania kostki,
-* proceduralne tło.
+* **HTML5**
+* **CSS3**
+* **JavaScript**
+* **Canvas API**
 
 ---
 
-# 🧪 Testowanie projektu
+# 💻 Техническая реализация
 
-Po zakończeniu prac projekt był wielokrotnie testowany:
+В проекте реализованы:
 
-* sprawdzano stabilność działania,
-* usuwano błędy,
-* optymalizowano wydajność,
-* poprawiano balans rozgrywki.
+* игровой цикл через `requestAnimationFrame`,
+* физика прыжков и гравитации,
+* вращение персонажа,
+* система коллизий,
+* процедурная генерация фона,
+* адаптивность под размер окна браузера.
 
 ---
 
-# 🎯 Efekt końcowy
+# 🖥️ Интерфейс
 
-W wyniku wspólnej pracy powstała w pełni funkcjonalna gra przeglądarkowa zawierająca:
+Проект содержит:
 
-* kilka poziomów,
-* system przeszkód,
-* interfejs użytkownika,
-* personalizację postaci,
-* system checkpointów,
-* płynne animacje i fizykę.
+* главное меню,
+* меню кастомизации,
+* игровой интерфейс (HUD),
+* экран победы.
 
-Projekt pozwolił uczestnikom rozwinąć umiejętności związane z:
+Во время игры отображаются:
 
+* прогресс прохождения,
+* количество смертей,
+* статус чекпоинтов.
+
+---
+
+# 🎯 Цель проекта
+
+Создание полноценной браузерной аркадной игры с использованием возможностей JavaScript и HTML5 Canvas без применения игровых движков.
+
+---
+
+# 📌 Итог
+
+В результате была создана функциональная браузерная игра с:
+
+* несколькими уровнями,
+* системой препятствий,
+* пользовательским интерфейсом,
+* кастомизацией персонажа,
+* системой чекпоинтов.
+
+Проект демонстрирует навыки работы с:
+
+* JavaScript,
+* Canvas API,
+* игровой логикой,
+* обработкой физики и анимаций.
 * programowaniem w JavaScript,
 * wykorzystaniem HTML5 Canvas,
 * pracą zespołową,
