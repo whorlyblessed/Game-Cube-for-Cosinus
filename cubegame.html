@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Cube Dash</title>
+    <style>
+        body, html { 
+            margin: 0; padding: 0; width: 100%; height: 100%; 
+            background: radial-gradient(circle, #022547, #1761d1);
+            font-family: 'Impact', 'Arial Black', sans-serif; 
+            color: #000000; overflow: hidden; user-select: none; 
+        }
+
+        .stroke-text {
+            text-shadow: -3px -3px 0 #000, 3px -3px 0 #000, -3px 3px 0 #000, 3px 3px 0 #000, 5px 5px 0 rgba(0,0,0,0.5);
+        }
+
+        .screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 10; }
+        .hidden { display: none !important; }
+
+        h1 { font-size: 80px; margin-bottom: 40px; letter-spacing: 5px; text-shadow: -3px -3px 0 #000, 3px -3px 0 #000, -3px 3px 0 #000, 3px 3px 0 #000; color: #00bb19; }
+
+        .btn { 
+            padding: 15px 40px; cursor: pointer; color: #000b20; 
+            border: 4px solid #000; border-radius: 12px; 
+            font-size: 32px; letter-spacing: 2px;
+            background: linear-gradient(180deg, #00bb19 0%, #318b69 100%);
+            box-shadow: 0 6px 0 #006400;
+            transition: transform 0.1s;
+            margin: 10px;
+        }
+        .btn:hover { transform: scale(1.05); filter: brightness(1.1); }
+        .btn:active { transform: translateY(4px); box-shadow: 0 2px 0 #006400; }
+
+        .btn-checkpoints { background: linear-gradient(180deg, #ffcc00 0%, #cc9900 100%); box-shadow: 0 6px 0 #8b6508; }
+
+        #ui-container { position: absolute; top: 20px; left: 20px; z-index: 15; pointer-events: none; color: #fff; font-size: 24px; text-shadow: 2px 2px 2px #000; }
+        #btn-exit { pointer-events: auto; padding: 10px 20px; border: 3px solid #000; background: #ff4444; border-radius: 8px; cursor: pointer; color: #000; margin-bottom: 10px; }
+
+        .custom-panel { background: rgba(0, 255, 200, 0.6); padding: 30px; border-radius: 20px; border: 4px solid #01573d; }
+        .skin-option { width: 60px; height: 60px; border: 4px solid #01573d; cursor: pointer; margin: 5px; display: inline-block; }
+        .skin-option.selected { border-color: #00ffb3; outline: 4px solid #000; }
+        
+        #cube-color { width: 60px; height: 60px; cursor: pointer; border: 3px solid #fff; }
+        
+        #cp-status-text { color: #ffcc00; font-size: 20px; margin-top: 5px; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<canvas id="gameCanvas"></canvas>
+
+<div id="ui-container" class="hidden">
+    <div id="btn-exit" onclick="showMainMenu()">MENU</div>
+    <div id="death-counter">DEATHS: <span id="deaths">0</span></div>
+    <div id="ui-progress">PROGRESS: <span id="progress">0</span>%</div>
+    <div id="cp-status-text" class="hidden">CHECKPOINTS ENABLED</div>
+</div>
+
+<div id="main-menu" class="screen">
+    <h1>CUBE DASH</h1>
+    <div class="menu-container">
+        <div class="btn btn-side" onclick="showCustomMenu()">CUSTOMIZATION</div>
+        <div class="btn btn-checkpoints" id="cp-btn" onclick="toggleCheckpoints()">CHECKPOINTS: OFF</div>
+        <div class="level-buttons">
+            <div class="btn" onclick="startLevel(1)">Level 1: The Basics</div>
+            <div class="btn" onclick="startLevel(2)">Level 2: Split Paths</div>
+            <div class="btn" onclick="startLevel(3)">Level 3: Gravity Core</div>
+        </div>
+    </div>
+</div>
+
+<div id="custom-menu" class="screen hidden">
+    <h1 style="font-size: 30px; margin-bottom: 10px;">CUBE CUSTOMIZATION</h1>
+    <div class="custom-panel">
+        <canvas id="previewCanvas" class="preview-canvas" width="60" height="60"></canvas>
+        
+        <div style="font-size: 14px; font-weight: bold; margin-top: 5px;">CHOOSE SKIN:</div>
+        <div class="skin-selector">
+            <div class="skin-option selected" id="skin1" onclick="selectSkin(1)"></div>
+            <div class="skin-option" id="skin2" onclick="selectSkin(2)"></div>
+            <div class="skin-option" id="skin3" onclick="selectSkin(3)"></div>
+        </div>
+
+        <div class="color-picker-wrapper">
+            <label for="cube-color" style="font-size: 14px;">CUBE COLOR:</label>
+            <input type="color" id="cube-color" value="#22c55e" style="width: 40px; height: 40px; border: none; cursor: pointer;">
+        </div>
+
+        <div class="btn" style="padding: 8px 25px; font-size: 16px; margin-top: 5px;" onclick="saveAndExitCustom()">SAVE</div>
+    </div>
+</div>
+
+<div id="victory-menu" class="screen hidden">
+    <h1 style="color: #4ade80;">VICTORY!</h1>
+    <div class="btn" onclick="showMainMenu()">MENU</div>
+</div>
+
+<script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    
+    const mainMenu = document.getElementById('main-menu');
+    const customMenu = document.getElementById('custom-menu');
+    const victoryMenu = document.getElementById('victory-menu');
+    const uiContainer = document.getElementById('ui-container');
+    const progressText = document.getElementById('progress');
+    const deathText = document.getElementById('deaths');
+    const cpBtn = document.getElementById('cp-btn');
+    const cpStatusText = document.getElementById('cp-status-text');
+
+    const previewCanvas = document.getElementById('previewCanvas');
+    const pCtx = previewCanvas.getContext('2d');
+    const colorPicker = document.getElementById('cube-color');
+
+    let playerSkin = 2;
+    let playerColor = '#22c55e';
+    let checkpointsEnabled = false;
+
+    function toggleCheckpoints() {
+        checkpointsEnabled = !checkpointsEnabled;
+        cpBtn.innerText = checkpointsEnabled ? "CHECKPOINTS: ON" : "CHECKPOINTS: OFF";
+        
+        if (checkpointsEnabled) {
+            cpStatusText.classList.remove('hidden');
+        } else {
+            cpStatusText.classList.add('hidden');
+        }
+    }
+
+    function resizeCanvas() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    }
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+
+    let gameActive = false;
+    let isDead = false;
+    let currentLevel = 1;
+    let deathCount = 0;
+    let floorY = canvas.height - 120;
+    let animationId = null; 
+    
+    let gameSpeed = 5.0; 
+    
+    let player = {
+        x: 150,
+        y: 0,
+        size: 40,
+        vy: 0,
+        gravity: 0.65,        
+        jumpForce: -12.0,    
+        isGrounded: false,
+        rotation: 0
+    };
+
+    let isHoldingJump = false;
+    let obstacles = [];
+    let levelLength = 4800;
+    let cameraX = 0;
+
+    window.addEventListener('keydown', function(e) {
+        if (e.code === 'Space' || e.code === 'ArrowUp') isHoldingJump = true;
+    });
+    window.addEventListener('keyup', function(e) {
+        if (e.code === 'Space' || e.code === 'ArrowUp') isHoldingJump = false;
+    });
+    window.addEventListener('mousedown', () => isHoldingJump = true);
+    window.addEventListener('mouseup', () => isHoldingJump = false);
+    window.addEventListener('touchstart', () => isHoldingJump = true);
+    window.addEventListener('touchend', () => isHoldingJump = false);
+
+    const levelData = {
+        1: [
+            {x: 600, w: 40, h: 40, type: 'spike', yUp: 0},
+            {x: 1000, w: 40, h: 40, type: 'spike', yUp: 0},
+            {x: 1400, w: 150, h: 50, type: 'block', yUp: 0},
+            {x: 1800, w: 40, h: 40, type: 'spike', yUp: 0},
+            {x: 1840, w: 40, h: 40, type: 'spike', yUp: 0},
+            {x: 2300, w: 100, h: 50, type: 'block', yUp: 0},
+            {x: 2400, w: 150, h: 50, type: 'block', yUp: 50},
+            {x: 2550, w: 200, h: 50, type: 'block', yUp: 100},
+            {x: 2700, w: 40, h: 40, type: 'spike', yUp: 0}, 
+            {x: 3200, w: 50, h: 50, type: 'block', yUp: 0},
+            {x: 3500, w: 50, h: 50, type: 'block', yUp: 0},
+            {x: 4000, w: 40, h: 40, type: 'spike', yUp: 0},
+            {x: 4040, w: 40, h: 40, type: 'spike', yUp: 0},
+            {x: 4080, w: 40, h: 40, type: 'spike', yUp: 0}
+        ],
+        2: [
+            {x: 500, w: 40, h: 40, type: 'spike', yUp: 0},
+            {x: 800, w: 40, h: 40, type: 'spike', yUp: 0},
+            {x: 1100, w: 50, h: 50, type: 'block', yUp: 50},  
+            {x: 1250, w: 50, h: 50, type: 'block', yUp: 110}, 
+            {x: 1400, w: 300, h: 50, type: 'block', yUp: 170}, 
+            {x: 1450, w: 40, h: 40, type: 'spike', yUp: 0},    
+            {x: 1490, w: 40, h: 40, type: 'spike', yUp: 0},
+            {x: 1530, w: 40, h: 40, type: 'spike', yUp: 0},
+            {x: 1900, w: 100, h: 50, type: 'block', yUp: 0},
+            {x: 2100, w: 100, h: 50, type: 'block', yUp: 50},
+            {x: 2300, w: 100, h: 50, type: 'block', yUp: 100},
+            {x: 2800, w: 50, h: 100, type: 'block', yUp: 0},
+            {x: 3200, w: 300, h: 50, type: 'block', yUp: 50},
+            {x: 3300, w: 40, h: 40, type: 'spike', yUp: 100},
+            {x: 3700, w: 40, h: 40, type: 'spike', yUp: 0},
+            {x: 4100, w: 100, h: 80, type: 'block', yUp: 0}
+        ],
+        3: [
+            {x: 500, w: 50, h: 50, type: 'block', yUp: 0},
+            {x: 550, w: 40, h: 40, type: 'spike', yUp: 0},
+            {x: 800, w: 50, h: 50, type: 'block', yUp: 50},
+            {x: 850, w: 40, h: 40, type: 'spike', yUp: 0},
+            {x: 1100, w: 50, h: 50, type: 'block', yUp: 50},
+            {x: 1250, w: 50, h: 50, type: 'block', yUp: 110},
+            {x: 1400, w: 350, h: 50, type: 'block', yUp: 170},
+            {x: 1450, w: 40, h: 40, type: 'spike', yUp: 0},
+            {x: 1490, w: 40, h: 40, type: 'spike', yUp: 0},
+            {x: 1530, w: 40, h: 40, type: 'spike', yUp: 0}, 
+            {x: 2000, w: 50, h: 50, type: 'block', yUp: 0},
+            {x: 2250, w: 50, h: 50, type: 'block', yUp: 0},
+            {x: 2500, w: 50, h: 50, type: 'block', yUp: 0},
+            {x: 3000, w: 50, h: 50, type: 'block', yUp: 0},
+            {x: 3150, w: 50, h: 50, type: 'block', yUp: 50},
+            {x: 3300, w: 50, h: 130, type: 'block', yUp: 0},
+            {x: 3700, w: 40, h: 40, type: 'spike', yUp: 0},
+            {x: 3950, w: 40, h: 40, type: 'spike', yUp: 0},
+            {x: 4200, w: 40, h: 40, type: 'spike', yUp: 0},
+            {x: 4450, w: 40, h: 40, type: 'spike', yUp: 0}
+        ]
+    };
+
+    function startLevel(levelNum, startX = 150) {
+        if (animationId) cancelAnimationFrame(animationId);
+
+        currentLevel = levelNum;
+        isDead = false;
+        floorY = canvas.height - 120;
+        
+        player.x = startX;
+        player.y = floorY - player.size;
+        player.vy = 0;
+        player.isGrounded = true;
+        player.rotation = 0;
+        
+        cameraX = Math.max(0, player.x - 150);
+        obstacles = [];
+        
+        let data = levelData[levelNum];
+        for (let i = 0; i < data.length; i++) {
+            obstacles.push({
+                x: data[i].x,
+                w: data[i].w,
+                h: data[i].h,
+                type: data[i].type,
+                yUp: data[i].yUp
+            });
+        }
+        
+        mainMenu.classList.add('hidden');
+        customMenu.classList.add('hidden');
+        victoryMenu.classList.add('hidden');
+        uiContainer.classList.remove('hidden');
+        gameActive = true;
+        
+        loop();
+    }
+
+    function showMainMenu() {
+        if (animationId) cancelAnimationFrame(animationId);
+        mainMenu.classList.remove('hidden');
+        customMenu.classList.add('hidden');
+        victoryMenu.classList.add('hidden');
+        uiContainer.classList.add('hidden');
+        gameActive = false;
+        isDead = false;
+        deathCount = 0; 
+        deathText.innerText = deathCount;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+
+    function showCustomMenu() {
+        mainMenu.classList.add('hidden');
+        customMenu.classList.remove('hidden');
+        updatePreview();
+    }
+
+    function selectSkin(skinId) {
+        document.querySelectorAll('.skin-option').forEach(el => el.classList.remove('selected'));
+        document.getElementById('skin' + skinId).classList.add('selected');
+        playerSkin = skinId;
+        updatePreview();
+    }
+
+    colorPicker.addEventListener('input', (e) => {
+        playerColor = e.target.value;
+        updatePreview();
+    });
+
+    function saveAndExitCustom() {
+        customMenu.classList.add('hidden');
+        mainMenu.classList.remove('hidden');
+    }
+
+    function drawCubeSkin(context, x, y, size, skinId, color) {
+        context.save();
+        context.translate(x + size / 2, y + size / 2);
+        
+        context.fillStyle = color;
+        context.fillRect(-size / 2, -size / 2, size, size);
+
+        context.strokeStyle = '#ffffff';
+        context.lineWidth = 3;
+        context.strokeRect(-size / 2, -size / 2, size, size);
+
+        context.fillStyle = '#0f172a';
+        context.strokeStyle = '#0f172a';
+
+        if (skinId === 1) {
+            let eyeW = size * 0.2;
+            let eyeH = size * 0.12;
+            context.fillRect(-size * 0.3, -size * 0.2, eyeW, eyeH);
+            context.fillRect(size * 0.1, -size * 0.2, eyeW, eyeH);
+            context.fillRect(-size * 0.3, size * 0.1, size * 0.6, size * 0.15);
+            
+        } else if (skinId === 2) {
+            let innerSize = size * 0.35;
+            context.fillRect(-innerSize / 2, -innerSize / 2, innerSize, innerSize);
+            
+        } else if (skinId === 3) {
+            context.lineWidth = 2.5;
+            context.beginPath();
+            context.arc(-size/2, -size/2, size * 0.5, 0, Math.PI / 2);
+            context.stroke();
+            
+            context.beginPath();
+            context.arc(-size/2, -size/2, size * 0.8, 0, Math.PI / 2);
+            context.stroke();
+
+            context.beginPath();
+            context.arc(-size/2, -size/2, size * 1.1, 0, Math.PI / 2);
+            context.stroke();
+        }
+
+        context.restore();
+    }
+
+    function updatePreview() {
+        pCtx.clearRect(0, 0, previewCanvas.width, previewCanvas.height);
+        drawCubeSkin(pCtx, 10, 10, 40, playerSkin, playerColor);
+    }
+    
+    function generateMenuIcons() {
+        for(let i = 1; i <= 3; i++) {
+            let opt = document.getElementById('skin' + i);
+            let iconCanv = document.createElement('canvas');
+            iconCanv.width = 60;
+            iconCanv.height = 60;
+            let iCtx = iconCanv.getContext('2d');
+            drawCubeSkin(iCtx, 10, 10, 40, i, '#64748b');
+            opt.appendChild(iconCanv);
+        }
+    }
+    generateMenuIcons();
+
+    function killPlayer() {
+        if (isDead) return;
+        isDead = true;
+        deathCount++;
+        deathText.innerText = deathCount;
+        
+        let respawnX = 150;
+        if (checkpointsEnabled) {
+            respawnX = Math.max(150, player.x - 150);
+        }
+        
+        setTimeout(() => {
+            if (gameActive) { 
+                startLevel(currentLevel, respawnX);
+            }
+        }, 800);
+    }
+
+    function loop() {
+        if (!gameActive) return;
+        update();
+        draw();
+        animationId = requestAnimationFrame(loop);
+    }
+
+    function update() {
+        if (isDead) return;
+
+        floorY = canvas.height - 120;
+
+        if (player.isGrounded && isHoldingJump) {
+            player.vy = player.jumpForce;
+            player.isGrounded = false;
+        }
+
+        let prevY = player.y;
+        
+        player.vy += player.gravity;
+        player.y += player.vy;
+        player.isGrounded = false;
+
+        let groundLevel = floorY - player.size;
+        if (player.y >= groundLevel) {
+            player.y = groundLevel;
+            player.vy = 0;
+            player.isGrounded = true;
+        }
+
+        player.x += gameSpeed;
+        cameraX = player.x - 150;
+
+        let progress = Math.floor((player.x / levelLength) * 100);
+        if (progress > 100) progress = 100;
+        progressText.innerText = progress;
+
+        if (player.x >= levelLength) {
+            gameActive = false;
+            uiContainer.classList.add('hidden');
+            victoryMenu.classList.remove('hidden');
+            return;
+        }
+
+        let px1 = player.x;
+        let px2 = player.x + player.size;
+        let py1 = player.y;
+        let py2 = player.y + player.size;
+
+        for (let i = 0; i < obstacles.length; i++) {
+            let obj = obstacles[i];
+            let objY = floorY - obj.h - obj.yUp;
+            
+            if (px1 < obj.x + obj.w && px2 > obj.x && py1 < objY + obj.h && py2 > objY) {
+                
+                if (obj.type === 'spike') {
+                    let y_bottom = Math.min(py2, objY + obj.h); 
+                    let dx = (y_bottom - objY) * (obj.w / 2) / obj.h; 
+                    let cx = obj.x + obj.w / 2;
+                    
+                    if (px1 < cx + dx - 2 && px2 > cx - dx + 2) {
+                        killPlayer();
+                    }
+                    
+                } else if (obj.type === 'block') {
+                    if (prevY + player.size <= objY + 2.0) {
+                        player.y = objY - player.size;
+                        player.vy = 0;
+                        player.isGrounded = true;
+                    } else {
+                        killPlayer();
+                    }
+                }
+            }
+        }
+
+        if (!player.isGrounded) {
+            player.rotation += 0.09; 
+        } else {
+            player.rotation = Math.round(player.rotation / (Math.PI / 2)) * (Math.PI / 2);
+        }
+    }
+
+    function drawProceduralBackground() {
+        let gradient = ctx.createLinearGradient(0, 0, 0, floorY);
+        if (currentLevel === 1) {
+            gradient.addColorStop(0, '#0072ff'); 
+            gradient.addColorStop(0.6, '#0033aa');
+            gradient.addColorStop(1, '#020617');   
+        } else if (currentLevel === 2) {
+            gradient.addColorStop(0, '#00a82d'); 
+            gradient.addColorStop(0.6, '#00661a');
+            gradient.addColorStop(1, '#022c22');
+        } else if (currentLevel === 3) {
+            gradient.addColorStop(0, '#bc00dd'); 
+            gradient.addColorStop(0.6, '#7a0099');
+            gradient.addColorStop(1, '#1e0030');
+        }
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, canvas.width, floorY);
+
+        ctx.save();
+        let scrollSpeed = 0.15; 
+        let bgX = (cameraX * scrollSpeed);
+        
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.045)'; 
+        ctx.lineWidth = 1.5;
+        
+        let patternWidth = 500;
+        let startK = Math.floor(bgX / patternWidth) - 1;
+        let endK = Math.ceil((bgX + canvas.width) / patternWidth) + 1;
+        
+        let bgBoxes = [
+            {x: 10, y: 30, s: 130},  {x: 160, y: 10, s: 80},  {x: 80, y: 180, s: 160},
+            {x: 260, y: 110, s: 120}, {x: 20, y: 360, s: 100},  {x: 150, y: 290, s: 70},
+            {x: 400, y: 40, s: 90},  {x: 350, y: 160, s: 140}, {x: 240, y: 320, s: 180},
+            {x: 390, y: 340, s: 110}
+        ];
+        
+        for (let k = startK; k <= endK; k++) {
+            let currentPatternX = k * patternWidth - bgX;
+            for (let box of bgBoxes) {
+                ctx.strokeRect(currentPatternX + box.x, box.y, box.s, box.s);
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.01)';
+                ctx.fillRect(currentPatternX + box.x, box.y, box.s, box.s);
+            }
+        }
+        ctx.restore();
+    }
+
+    function draw() {
+        ctx.fillStyle = '#020617';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        drawProceduralBackground();
+
+        ctx.fillStyle = '#090d16';
+        ctx.fillRect(0, floorY, canvas.width, canvas.height - floorY);
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, floorY, canvas.width, 3); 
+
+        ctx.save();
+        ctx.translate(player.x - cameraX + player.size / 2, player.y + player.size / 2);
+        ctx.rotate(player.rotation);
+        ctx.translate(-(player.x - cameraX + player.size / 2), -(player.y + player.size / 2));
+        
+        drawCubeSkin(ctx, player.x - cameraX, player.y, player.size, playerSkin, playerColor);
+        ctx.restore();
+
+        for (let i = 0; i < obstacles.length; i++) {
+            let obj = obstacles[i];
+            let screenX = obj.x - cameraX;
+            let objY = floorY - obj.h - obj.yUp;
+            
+            if (screenX + obj.w > -50 && screenX < canvas.width + 50) {
+                if (obj.type === 'spike') {
+                    ctx.fillStyle = '#0f172a';
+                    ctx.strokeStyle = '#ef4444';
+                    ctx.lineWidth = 3;
+                    
+                    ctx.beginPath();
+                    ctx.moveTo(screenX, objY + obj.h);
+                    ctx.lineTo(screenX + obj.w / 2, objY);
+                    ctx.lineTo(screenX + obj.w, objY + obj.h);
+                    ctx.closePath();
+                    ctx.fill();
+                    ctx.stroke();
+
+                } else if (obj.type === 'block') {
+                    ctx.fillStyle = 'rgba(15, 23, 42, 0.95)'; 
+                    ctx.strokeStyle = '#94a3b8';
+                    ctx.lineWidth = 2;
+                    
+                    ctx.fillRect(screenX, objY, obj.w, obj.h);
+                    ctx.strokeRect(screenX, objY, obj.w, obj.h);
+                }
+            }
+        }
+    }
+</script>
+
+</body>
+</html>
