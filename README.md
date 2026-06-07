@@ -1,5 +1,7 @@
 # 🎮 Cube Dash
 
+Wykonal projekt: Valentyn Borysenko, Dmytro Kivshar 4D
+
 ## 📌 O projekcie
 
 **Cube Dash** to dwuwymiarowa gra zręcznościowa stworzona przy użyciu technologii **HTML5, CSS3 oraz JavaScript** bez wykorzystania zewnętrznych silników gier.
